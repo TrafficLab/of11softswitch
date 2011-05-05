@@ -1,0 +1,214 @@
+1.1 - 20 April 2011
+-------------------
+    - OpenFlow 1.1 implemented
+       - userspace switch with complete OpenFlow 1.1 support
+       - dpctl utility redone for OpenFlow 1.1 commands
+       - OpenFlow Library (oflib) added to provide support for converting
+            to/from wire format, and for syntax checking of OpenFlow messages
+
+    NOTE: the rest of the original features packed with the OpenFlow
+          distribution are modified to compile, but are untested, and most
+          probably broken. 
+
+1.0.0-rev1 - XX XXX 2010
+------------------------
+    - Changes to regression suite:
+        - Added testing support for Open vSwitch
+        - Updated HP-ProCurve scripts
+        - Minor fixes applied to libraries
+        - Fixes applied to the following tests:
+             test_switch_config, test_forward_broadcast_exact_port,
+	     test_set_n_match_nw_tos, test_set_nw_dst,
+	     test_failover_startup
+        - Added test to verify flipping of src/dst MAC and IP
+	- Ability to disable slicing, VLAN, and barrier in tests
+	- Can easily run a single test
+	For more information, see regress/README
+
+1.0.0 - 31 Dec 2009
+-------------------
+    - Fixed Wireshark plugin warnings
+    - Clarified purpose of actions field in ofp_switch_features in spec
+
+    Known issues:
+    - isolation provided by the slicing mechanism has been
+      observed to degrade when run on systems with low performance CPUs.
+      Investigations are underway to improve isolation on such systems.
+
+1.0.0-RC1 - 19 Dec 2009
+-----------------------
+    - Changed wire protocol version to 0x01
+    - Added slicing support
+    - Improved resolution of flow duration in stats/expiry
+    - Added flow cookies to flows
+    - Enable matching on IP fields inside ARP packets
+    - Enable port stats to be retrieved for individual ports
+    - Added ability to match on IP ToS bits
+    - Added datapath description to desc stats
+    - Added ability to control slicing queues from dpctl
+    - Set datapath description from dpctl
+    - Removed kernel datapath from reference switch
+      (will be release separately)
+    - Fix bug related to identifying overlapping flows
+    - Updated Wireshark dissector to support 1.0.0 features
+    - Added regression tests for ARP handling, flow cookies, slicing,
+      selective port stats, flow duration precision, matching on ToS bits, and
+      the datapath description
+
+    Known issues:
+    - isolation provided by the slicing mechanism has been
+      observed to degrade when run on systems with low performance CPUs.
+      Investigations are underway to improve isolation on such systems.
+
+0.9.0-rev1 - 04 Sep 2009
+------------------------
+    - Added NetFPGA hardware table support (wire protocol 0x98)
+    - Fixed a few userspace datapath bugs
+
+0.9.0 - 20 Jul 2009
+-------------------
+    - Changed wire protocol version to 0x98
+    - Removed monolithic switch process called switch
+    - Added userspace data plane process named ofdatapath
+    - Changed userspace control plane process name to ofprotocol
+    - Changed kernelspace data plane extension name to ofdatapath.ko
+    - Changed NetFPGA kernelspace extestion name to ofdatapath_netfpga.ko
+    - Removed Linux 2.4 kerel support
+    - Added simple controller failover feature
+    - Added emergency flow cache feature
+    - Added barrier command
+    - Added 802.1Q VLAN priority bits match feature
+    - Clarified flow expiration, renamed flow expiration to flow removed
+    - Added protocol statistics collector
+    - Added IP ToS/DSCP rewrite feature
+    - Changed port enumeration at 1 instead of 0
+    - Clarified emergeency flow cache behavior
+    - Clarified definition of datapath ID
+    - Clarified meaning of a zero-size miss_send_len
+    - Clarified meaning of a zero-size max_len in output action
+    - Changed protocol structure alignment to ensure 64-bit
+
+v0.8.9 r2 - 23 Jan 2009
+-----------------------
+    - Added NetFPGA hardware table support (wire protocol 0x97)
+    - Added regression tests on port_stats, flow_stats, drop, ICMP handling
+    - Bug fixes
+
+v0.8.9~1 - 01 Dec 2008
+----------------------
+    - Added support for IP netmasks
+    - Added new physical port stats
+    - Added IN_PORT virtual port
+    - Added echo request/response
+    - Added detection of link and port status changes
+    - Added ability to configure port status from controller
+    - Added support for vendor extensions
+    - Added support for variable length actions
+    - Added support for matching ICMP type and code
+    - Added support for listing and deleting flows based on output port action
+    - Added support for modifying VLAN priority tag
+    - Increased max supported ports to 65280
+    - More explicit handling for IP fragments
+    - Added support for 802.1D spanning tree
+    - Added OFPFC_MODIFY command to Flow Mod message
+    - Provided more flexible description of tables to controller
+    - Make port modification more explicit
+    - Made Packet Out message more consistent
+    - Added hard timeout value to Flow Mod message
+    - Added reason field for Flow Expired message
+    - Reworked initial handshake to support backwards compatibility
+    - Added OFPST_DESC stat for returning description of hw/sw 
+    - Added support for loadable hardware table support modules**
+    - In-band control now supported**
+    - 802.1D spanning tree support**
+    - Automatic controller discovery (via DHCP) now supported**
+    - Improved support for older 2.6.x kernels**
+    - Switch can now "fail open" as a MAC-learning switch if the controller cannot be contacted**
+    - Debian packages may now be built**
+    - Fixed bugs in SSL support
+    - Most programs now take --detach and --pidfile options to run as daemon
+    - Numerous bug fixes 
+
+      ** Only supported in the kernel module for the time-being.
+
+v0.8.1 - 14 May 2008
+--------------------
+    - No longer set nwsrc/nwdst fields in flow structs on ARP packets
+    - Various bug fixes and tweaks
+
+v0.8.0 - 04 May 2008
+--------------------
+    - Added support for flow entry priorities
+    - Added support for all stats messages
+    - Added support for OFPP_TABLE virtual port
+    - Removed MAC tables
+    - Various bug fixes and tweaks
+
+v0.2.1 - 28 Mar 2008
+--------------------
+    - Fixed build problem when SSL enabled
+
+v0.2.0 - 28 Mar 2008
+--------------------
+    - Added userspace switch reference implementation
+
+v0.1.9 - 19 Mar 2008
+--------------------
+    - Added SSL/TLS support
+    - Various bug fixes and tweaks
+
+v0.1.8 - 03 Mar 2008
+--------------------
+    - Added support for cross-compilation
+    - Various bug fixes and tweaks
+
+v0.1.7 - 07 Feb 2008
+--------------------
+    - Allow permanent flow entries to be set
+    - Added patch for tcpdump that allows parsing of OpenFlow messages
+    - Various bug fixes and tweaks
+
+v0.1.6 - 05 Feb 2008
+--------------------
+    - Added support for Linux 2.6.24
+    - Set nwsrc/nwdst fields in flow structs on ARP packets
+    - Various bug fixes and tweaks
+
+v0.1.5 - 17 Jan 2008
+--------------------
+    - Added support for Linux 2.4.20
+    - Added support for GCC 2.95
+
+v0.1.4 - 15 Jan 2008
+--------------------
+    - Decode and print port_status messages
+    - Fixed build problems on big-endian systems
+    - Fixed compatibility for older 2.6 kernels
+    - Various bug fixes and tweaks
+
+v0.1.3 - 08 Jan 2008
+--------------------
+    - Added support for flow expiration messages
+    - Decode and print all datapath-generated messages in dpctl's "monitor" 
+    - Added "--noflow" option to controller
+    - Various bug fixes and tweaks
+
+v0.1.2 - 07 Jan 2008
+--------------------
+    - Fixed distribution to include ofp_pcap.h
+    - Removed autoconf C++ checks
+
+v0.1.1 - 18 Dec 2007
+--------------------
+    - Fixed support for Linux 2.4.35 and 2.6.22
+    - Added support for Linux 2.6.15
+    - Added "vlogconf" utility to modify logging configuration
+    - Added better support for SNAP headers
+    - Improved printing of flow information in dpctl
+    - Made kernel code consistently use tabs instead of spaces
+    - Removed libpcap requirement for building
+    - Various bug fixes and tweaks
+
+v0.1.0 - 30 Nov 2007
+--------------------
+    - Initial release
