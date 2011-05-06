@@ -112,7 +112,7 @@ ofl_msg_unpack_features_reply(struct ofp_header *src, size_t *len, struct ofl_ms
     sr = (struct ofp_switch_features *)src;
     dr = (struct ofl_msg_features_reply *)malloc(sizeof(struct ofl_msg_features_reply));
 
-    dr->datapath_id  = (sr->datapath_id);
+    dr->datapath_id  = ntoh64(sr->datapath_id);
     dr->n_buffers    = ntohl( sr->n_buffers);
     dr->n_tables     = ntohl( sr->n_tables);
     dr->capabilities = ntohl( sr->capabilities);
