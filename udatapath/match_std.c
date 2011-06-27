@@ -77,6 +77,7 @@ bool
 match_std_nonstrict(struct ofl_match_standard *a, struct ofl_match_standard *b) {
     return ((wc2(a->wildcards, b->wildcards, OFPFW_IN_PORT) || a->in_port == b->in_port) &&
             eth_matches(a->dl_src, a->dl_src_mask, b->dl_src, b->dl_src_mask) &&
+            eth_matches(a->dl_dst, a->dl_dst_mask, b->dl_dst, b->dl_dst_mask) &&
             (wc2(a->wildcards, b->wildcards, OFPFW_DL_VLAN) ||
                     (a->dl_vlan == OFPVID_ANY && b->dl_vlan != OFPVID_NONE) ||
                     (b->dl_vlan == OFPVID_ANY && a->dl_vlan != OFPVID_NONE) ||
