@@ -220,12 +220,13 @@ action_set_execute(struct action_set *set, struct packet *pkt) {
         } else if (pkt->out_port != OFPP_ANY) {
             uint32_t port_id = pkt->out_port;
             uint32_t queue_id = pkt->out_queue;
+            uint16_t max_len = pkt->out_port_max_len;
             pkt->out_port = OFPP_ANY;
             pkt->out_port_max_len = 0;
             pkt->out_queue = 0;
 
             action_set_clear_actions(pkt->action_set);
-            dp_actions_output_port(pkt, port_id, queue_id);
+            dp_actions_output_port(pkt, port_id, queue_id, max_len);
             return;
         }
     }

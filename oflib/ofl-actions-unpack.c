@@ -90,7 +90,7 @@ ofl_actions_unpack(struct ofp_action_header *src, size_t *len, struct ofl_action
 
             da = (struct ofl_action_output *)malloc(sizeof(struct ofl_action_output));
             da->port = ntohl(sa->port);
-            da->max_len = ntohl(sa->max_len);
+            da->max_len = ntohs(sa->max_len);
 
             *len -= sizeof(struct ofp_action_output);
             *dst = (struct ofl_action_header *)da;
