@@ -268,11 +268,17 @@ ofl_structs_flow_stats_unpack(struct ofp_flow_stats *src, size_t *len, struct of
     struct ofl_flow_stats *s;
     struct ofp_instruction *inst;
     ofl_err error;
+    size_t slen;
     size_t i;
 
     if (*len < (sizeof(struct ofp_flow_stats) - sizeof(struct ofp_match))) {
         OFL_LOG_WARN(LOG_MODULE, "Received flow stats has invalid length (%zu).", *len);
         return ofl_error(OFPET_BAD_ACTION, OFPBRC_BAD_LEN);
+    }
+
+    if (*len < ntohs(src->length)) {
+        OFL_LOG_WARN(LOG_MODULE, "Received flow stats reply has invalid length (set to %u, but only %zu received).", ntohs(src->length), *len);
+        return ofl_error(OFPET_BAD_REQUEST, OFPBRC_BAD_LEN);
     }
 
     if (src->table_id == 0xff) {
@@ -283,7 +289,8 @@ ofl_structs_flow_stats_unpack(struct ofp_flow_stats *src, size_t *len, struct of
         }
         return ofl_error(OFPET_BAD_ACTION, OFPBRC_BAD_LEN);
     }
-    *len -= (sizeof(struct ofp_flow_stats) - sizeof(struct ofp_match));
+
+    slen = ntohs(src->length) - (sizeof(struct ofp_flow_stats) - sizeof(struct ofp_match));
 
     s = (struct ofl_flow_stats *)malloc(sizeof(struct ofl_flow_stats));
 
@@ -297,13 +304,13 @@ ofl_structs_flow_stats_unpack(struct ofp_flow_stats *src, size_t *len, struct of
     s->packet_count =  ntoh64(src->packet_count);
     s->byte_count =    ntoh64(src->byte_count);
 
-    error = ofl_structs_match_unpack(&(src->match), len, &(s->match), exp);
+    error = ofl_structs_match_unpack(&(src->match), &slen, &(s->match), exp);
     if (error) {
         free(s);
         return error;
     }
 
-    error = ofl_utils_count_ofp_instructions(src->instructions, *len, &s->instructions_num);
+    error = ofl_utils_count_ofp_instructions(src->instructions, slen, &s->instructions_num);
     if (error) {
         ofl_structs_free_match(s->match, exp);
         free(s);
@@ -313,7 +320,7 @@ ofl_structs_flow_stats_unpack(struct ofp_flow_stats *src, size_t *len, struct of
 
     inst = src->instructions;
     for (i = 0; i < s->instructions_num; i++) {
-        error = ofl_structs_instructions_unpack(inst, len, &(s->instructions[i]), exp);
+        error = ofl_structs_instructions_unpack(inst, &slen, &(s->instructions[i]), exp);
         if (error) {
             OFL_UTILS_FREE_ARR_FUN2(s->instructions, i,
                                     ofl_structs_free_instruction, exp);
@@ -323,6 +330,14 @@ ofl_structs_flow_stats_unpack(struct ofp_flow_stats *src, size_t *len, struct of
         inst = (struct ofp_instruction *)((uint8_t *)inst + ntohs(inst->len));
     }
 
+    if (slen != 0) {
+        *len = *len - ntohs(src->length) + slen;
+        OFL_LOG_WARN(LOG_MODULE, "The received flow stats contained extra bytes (%zu).", slen);
+        ofl_structs_free_flow_stats(s, exp);
+        return ofl_error(OFPET_BAD_REQUEST, OFPBRC_BAD_LEN);
+    }
+
+    *len -= ntohs(src->length);
     *dst = s;
     return 0;
 }
