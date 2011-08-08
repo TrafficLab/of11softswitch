@@ -1,97 +1,89 @@
-        OpenFlow Reference Release <http://openflowswitch.org>
+OpenFlow 1.1 Software Switch
+----------------------------
 
-What is OpenFlow?
------------------
+This is an OpenFlow 1.1 [1] compatible user-space software switch implementation.
+The code is based on the original Stanford 1.0.0 reference switch [2], with
+the forwarding plane being completely rewritten to support OpenFlow 1.1.
+The implementation is feature-complete, and passes the available oftest 1.1
+test cases [3].
 
-OpenFlow is a flow-based switch specification designed to enable
-researchers to run experiments in live networks.  OpenFlow is based on a
-simple Ethernet flow switch that exposes a standardized interface for
-adding and removing flow entries.
+The following components are available in the release:
+  - ofdatapath: the switch implementation
+  - ofprotocol: secure channel for connecting the switch to the controller
+  - oflib:      a library for converting to/from 1.1 wire format
+  - dpctl:      a tool for configuring the switch from the console
 
-An OpenFlow switch consists of three parts: (1) "Flow tables" in
-which each flow entry is associated with an action telling the switch
-how to process the flow, (2) a "secure channel" connecting the switch
-to a remote process (a controller), allowing commands and packets to
-be sent between the controller and the switch, and (3) an OpenFlow
-protocol implementation, providing an open and standard way for a
-controller to talk to the switch.
+[1] http://www.openflow.org/documents/openflow-spec-v1.1.0.pdf
+[2] http://yuba.stanford.edu/git/gitweb.cgi?p=openflow.git;a=tree;h=7f09f6a88d86883b516c99eb4058402eb07e5fd0;hb=d90824f0e8c3b6606d04e5a8813f03e89a6d0894
+[3] https://github.com/TrafficLab/oftest11
 
-An OpenFlow switch can thus serve as a simple datapath element that
-forwards packets between ports according to flow actions defined by
-the controller using OpenFlow commands.  Example actions are:
 
-    - Forward this flow's packets to the given port(s)
-    - Drop this flow's packets
-    - Encapsulate and forward this flow's packets to the controller.
+Getting Started
+---------------
 
-The OpenFlow switch is defined in detail in the OpenFlow switch
-Specification [2].
+To build, run the following commands in the of11softswitch directory:
 
-What's here?
-------------
+    ./boot.sh
+    ./configure
+    make
 
-This distribution includes one reference implementations of an
-OpenFlow switch.  This implementation has the following components:
 
-        - ofdatapath, which implements the flow table in user space.
+To start the datapath, run the following commands:
 
-        - ofprotocol, a program that implements the secure channel
-          component of the reference switch.
+    cd udatapath
+    sudo ./ofdatapath --datapath-id=<dpid> --interfaces=<if-list> ptcp:<port>
 
-        - dpctl, a tool for configuring the switch.
+This will start the datapath, with the given datapath id, and interace list,
+opening a passive tcp connection on the given port. For a complete list of
+options, use the --help argument.
 
-This distribution includes some additional software as well:
 
-        - vlogconf, a utility that can adjust the logging levels of a
-          running ofprotocol or controller.
+To start the secure channel, run the following commands:
 
-        - ofp-pki, a utility for creating and managing the public-key
-          infrastructure for OpenFlow switches.
+    cd secchan
+    ./ofprotocol tcp:<switch-host>:<switch-port> tcp:<ctrl-host>:<ctrl-port>
 
-For installation instructions, read INSTALL.  Each userspace program
-is also accompanied by a manpage.
+This will open tcp connections to both the switch and the controller, relaying
+OpenFlow protocol messages between the two. For a complete list of options,
+use the --help argument.
 
-What's NOT here?
-----------------
 
-The reference implementation no longer includes the Linux kernel module
-or the NetFPGA implementation. The OpenFlow consortium intends to
-release these separately from the reference design.
+You can send requests to the switch using the dpctl utility:
 
-Platform support
-----------------
+    cd utilities
+    ./dpctl tcp:<switch-host>:<switch-port> stats-flow table=0
 
-Other than the userspace switch implementation, the software in the
-OpenFlow distribution should compile under Unix-like environments such
-as Linux, FreeBSD, Mac OS X, and Solaris.  Our primary test environment
-is Debian GNU/Linux.  Please contact us with portability-related bug
-reports or patches.
+For a complete list of commands and arguments, use the --help argument, and
+consult the dpctl.h file [1].
 
-The userspace datapath implementation should be easy to port to
-Unix-like systems.  The interface to network devices, in netdev.c, is
-the code most likely to need changes.  So far, only Linux is
-supported.  We welcome ports to other platforms.
+[1] https://github.com/TrafficLab/of11softswitch/blob/master/utilities/dpctl.h
 
-GCC is the expected compiler.
 
-Bugs/Shortcomings
------------------
+Contribute
+----------
 
-- The flow table does not support the "normal processing" action.
+Please submit your bug reports, fixes and suggestions as pull requests on
+github, or by contacting us directly.
+
+
+License
+-------
+
+OpenFlow 1.1 Software Switch is released under the BSD license (BSD-like
+for code from the original Stanford switch).
+
 
 References
 ----------
 
-    [1] OpenFlow: Enabling Innovation in College Networks.  Whitepaper.
-        <http://openflowswitch.org/documents/openflow-wp-latest.pdf>
+[1] OpenFlow: http://www.openflow.org/
+[2] ONF:      http://www.opennetworkingfoundation.org/
 
-    [2] OpenFlow Switch Specification.
-        <http://openflowswitch.org/documents/openflow-spec-latest.pdf>
 
-Contact 
+Contact
 -------
 
-Public discussion list: openflow-discuss@openflowswitch.org
-Direct e-mail:          info@openflowswitch.org
+E-mail: Zoltan Lajos Kis (zoltan.lajos.kis@ericsson.com)
 
-Web:                    http://openflowswitch.org/
+Wiki:   https://openflow.stanford.edu/display/of11softswitch
+Repo:   https://github.com/TrafficLab/of11softswitch
