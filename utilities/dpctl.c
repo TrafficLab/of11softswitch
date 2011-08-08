@@ -1527,13 +1527,13 @@ parse_flow_mod_args(char *str, struct ofl_msg_flow_mod *req) {
             continue;
         }
         if (strncmp(token, FLOW_MOD_HARD KEY_VAL, strlen(FLOW_MOD_HARD KEY_VAL)) == 0) {
-            if (sscanf(token, FLOW_MOD_HARD KEY_VAL "%"SCNu16"", &(req->idle_timeout)) != 1) {
+            if (sscanf(token, FLOW_MOD_HARD KEY_VAL "%"SCNu16"", &(req->hard_timeout)) != 1) {
                 ofp_fatal(0, "Error parsing %s: %s.", FLOW_MOD_HARD, token);
             }
             continue;
         }
         if (strncmp(token, FLOW_MOD_PRIO KEY_VAL, strlen(FLOW_MOD_PRIO KEY_VAL)) == 0) {
-            if (sscanf(token, FLOW_MOD_PRIO KEY_VAL "%"SCNu16"", &(req->idle_timeout)) != 1) {
+            if (sscanf(token, FLOW_MOD_PRIO KEY_VAL "%"SCNu16"", &(req->priority)) != 1) {
                 ofp_fatal(0, "Error parsing %s: %s.", FLOW_MOD_PRIO, token);
             }
             continue;
