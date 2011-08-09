@@ -94,7 +94,7 @@ flow_table_add(struct flow_table *table, struct ofl_msg_flow_mod *mod, bool chec
             return 0;
         }
 
-        if (mod->priority < entry->stats->priority) {
+        if (mod->priority > entry->stats->priority) {
             break;
         }
     }
