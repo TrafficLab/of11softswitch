@@ -285,8 +285,8 @@ flow_table_stats(struct flow_table *table, struct ofl_msg_stats_request_flow *ms
     LIST_FOR_EACH(entry, struct flow_entry, match_node, &table->match_entries) {
         if ((msg->out_port == OFPP_ANY || flow_entry_has_out_port(entry, msg->out_port)) &&
             (msg->out_group == OFPG_ANY || flow_entry_has_out_group(entry, msg->out_group)) &&
-            match_std_nonstrict((struct ofl_match_standard *)entry->stats->match,
-                                (struct ofl_match_standard *)msg->match)) {
+            match_std_nonstrict((struct ofl_match_standard *)msg->match,
+                                (struct ofl_match_standard *)entry->stats->match)) {
 
             flow_entry_update(entry);
             if ((*stats_size) == (*stats_num)) {
@@ -307,8 +307,8 @@ flow_table_aggregate_stats(struct flow_table *table, struct ofl_msg_stats_reques
     LIST_FOR_EACH(entry, struct flow_entry, match_node, &table->match_entries) {
         if ((msg->out_port == OFPP_ANY || flow_entry_has_out_port(entry, msg->out_port)) &&
             (msg->out_group == OFPG_ANY || flow_entry_has_out_group(entry, msg->out_group)) &&
-            match_std_nonstrict((struct ofl_match_standard *)entry->stats->match,
-                                 (struct ofl_match_standard *)msg->match)) {
+            match_std_nonstrict((struct ofl_match_standard *)msg->match,
+                                (struct ofl_match_standard *)entry->stats->match)) {
 
             (*packet_count) += entry->stats->packet_count;
             (*byte_count)   += entry->stats->byte_count;

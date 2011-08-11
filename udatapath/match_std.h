@@ -39,6 +39,11 @@
  * Functions for comparing two standard match structures.
  ****************************************************************************/
 
+/* Returns true if the two matches overlap. */
+bool
+match_std_overlap(struct ofl_match_standard *a, struct ofl_match_standard *b);
+
+
 /* Returns true if match a matches match b, in a strict manner. */
 bool
 match_std_strict(struct ofl_match_standard *a, struct ofl_match_standard *b);
@@ -46,6 +51,10 @@ match_std_strict(struct ofl_match_standard *a, struct ofl_match_standard *b);
 /* Returns true if match a matches match b, in a non-strict manner. */
 bool
 match_std_nonstrict(struct ofl_match_standard *a, struct ofl_match_standard *b);
+
+/* Returns true if match a matches match b, where b's wildcards and masks are ignored. */
+bool
+match_std_pkt(struct ofl_match_standard *a, struct ofl_match_standard *b);
 
 
 

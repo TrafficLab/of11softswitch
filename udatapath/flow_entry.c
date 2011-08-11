@@ -100,11 +100,11 @@ bool
 flow_entry_matches(struct flow_entry *entry, struct ofl_msg_flow_mod *mod, bool strict) {
     if (strict) {
         return (entry->stats->priority == mod->priority) &&
-               match_std_strict((struct ofl_match_standard *)entry->stats->match,
-                                (struct ofl_match_standard *)mod->match);
+               match_std_strict((struct ofl_match_standard *)mod->match,
+                                (struct ofl_match_standard *)entry->stats->match);
     } else {
-        return match_std_nonstrict((struct ofl_match_standard *)entry->stats->match,
-                                   (struct ofl_match_standard *)mod->match);
+        return match_std_nonstrict((struct ofl_match_standard *)mod->match,
+                                   (struct ofl_match_standard *)entry->stats->match);
     }
 }
 
@@ -113,7 +113,8 @@ flow_entry_overlaps(struct flow_entry *entry, struct ofl_msg_flow_mod *mod) {
     return (entry->stats->priority == mod->priority &&
             (mod->out_port == OFPP_ANY || flow_entry_has_out_port(entry, mod->out_port)) &&
             (mod->out_group == OFPG_ANY || flow_entry_has_out_group(entry, mod->out_group)) &&
-            flow_entry_matches(entry, mod, false));
+            match_std_overlap((struct ofl_match_standard *)entry->stats->match,
+                                            (struct ofl_match_standard *)mod->match));
 }
 
 

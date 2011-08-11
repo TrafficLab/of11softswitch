@@ -76,8 +76,6 @@ packet_handle_std_validate(struct packet_handle_std *handle) {
         memset(handle->match, 0x00, sizeof(struct ofl_match_standard));
         m->header.type = OFPMT_STANDARD;
         m->in_port = pkt->in_port;
-        m->metadata_mask = 0xffffffffffffffffULL; /* set to ALL, so
-                                                     overlap check can be reused */
 
         /* Ethernet */
 
@@ -349,7 +347,7 @@ bool
 packet_handle_std_match(struct packet_handle_std *handle, struct ofl_match_standard *match) {
     packet_handle_std_validate(handle);
 
-    return match_std_nonstrict(handle->match, match);
+    return match_std_pkt(match, handle->match);
 }
 
 /* If pointer is not null, returns str; otherwise returns an empty string. */
