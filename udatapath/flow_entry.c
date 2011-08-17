@@ -244,7 +244,7 @@ init_group_refs(struct flow_entry *entry) {
 
             for (j=0; j < ia->actions_num; j++) {
                 if (ia->actions[j]->type == OFPAT_GROUP) {
-                    struct ofl_action_group *ag = (struct ofl_action_group *)(ia->actions[i]);
+                    struct ofl_action_group *ag = (struct ofl_action_group *)(ia->actions[j]);
                     if (!has_group_ref(entry, ag->group_id)) {
                         struct group_ref_entry *gre = xmalloc(sizeof(struct group_ref_entry));
                         gre->entry = group_table_find(entry->dp->groups, ag->group_id);
