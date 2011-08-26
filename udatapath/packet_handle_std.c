@@ -67,15 +67,18 @@ packet_handle_std_validate(struct packet_handle_std *handle) {
         struct packet *pkt = handle->pkt;
         struct ofl_match_standard *m = handle->match;
         struct protocols_std *proto = handle->proto;
+        uint64_t current_metadata;
         size_t offset = 0;
 
         handle->valid = true;
 
         protocol_reset(handle->proto);
 
-        memset(handle->match, 0x00, sizeof(struct ofl_match_standard));
+        current_metadata = m->metadata;
+        memset(m, 0x00, sizeof(struct ofl_match_standard));
         m->header.type = OFPMT_STANDARD;
-        m->in_port = pkt->in_port;
+        m->in_port     = pkt->in_port;
+        m->metadata    = current_metadata;
 
         /* Ethernet */
 
@@ -285,6 +288,7 @@ packet_handle_std_create(struct packet *pkt) {
     handle->pkt   = pkt;
     handle->proto = xmalloc(sizeof(struct protocols_std));
     handle->match = xmalloc(sizeof(struct ofl_match_standard));
+    handle->match->metadata = 0x0000000000000000ULL; /* intialized for validate */
     handle->valid = false;
 
     packet_handle_std_validate(handle);
