@@ -180,36 +180,25 @@ make_mod_match(struct ofl_match_header *match) {
                  account, which are explicitly matched (MPLS, ARP, IP, TCP, UDP).
                  the rest of the fields are wildcarded in the created match. */
 
-
-        if ((m->wildcards & OFPFW_DL_TYPE) != 0) {
-            m->dl_type = 0x0000;
-        }
-
         /* IPv4 / ARP */
-        if (m->dl_type != ETH_TYPE_IP && m->dl_type != ETH_TYPE_ARP) {
-            m->nw_tos =               0x00;
-            m->nw_proto =             0x0000;
-            m->nw_src =               0x00000000;
-            m->nw_src_mask =          0xffffffff;
-            m->nw_dst =               0x00000000;
-            m->nw_dst_mask =          0xffffffff;
+        if (((m->wildcards & OFPFW_DL_TYPE) != 0) ||
+            (m->dl_type != ETH_TYPE_IP && m->dl_type != ETH_TYPE_ARP)) {
             m->wildcards |= OFPFW_NW_TOS;
             m->wildcards |= OFPFW_NW_PROTO;
+            m->nw_src_mask = 0xffffffff;
+            m->nw_dst_mask = 0xffffffff;
         }
 
         /* Transport */
-        if (m->nw_proto != IP_TYPE_ICMP && m->nw_proto != IP_TYPE_TCP &&
-            m->nw_proto != IP_TYPE_UDP  && m->nw_proto != IP_TYPE_SCTP) {
-            m->tp_src =        0x0000;
-            m->tp_dst =        0x0000;
+        if (((m->wildcards & OFPFW_NW_PROTO) != 0) ||
+            (m->nw_proto != IP_TYPE_ICMP && m->nw_proto != IP_TYPE_TCP &&
+             m->nw_proto != IP_TYPE_UDP  && m->nw_proto != IP_TYPE_SCTP)) {
             m->wildcards |= OFPFW_TP_SRC;
             m->wildcards |= OFPFW_TP_DST;
         }
 
         /* MPLS */
         if (m->dl_type != ETH_TYPE_MPLS && m->dl_type != ETH_TYPE_MPLS_MCAST) {
-            m->mpls_label = 0x00000000;
-            m->mpls_tc =    0x00;
             m->wildcards |= OFPFW_MPLS_LABEL;
             m->wildcards |= OFPFW_MPLS_TC;
         }
