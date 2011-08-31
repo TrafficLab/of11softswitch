@@ -340,17 +340,13 @@ static void
 is_loop_free_visit(struct ofl_bucket **buckets, size_t buckets_num, struct list *visited, struct list *to_be_visited) {
 	size_t ib;
 	for (ib=0; ib<buckets_num; ib++) {
-VLOG_WARN_RL(LOG_MODULE, &rl, "ILFV: bucket(%u)\n", ib);
 		size_t ia;
 
 		for (ia=0; ia<buckets[ib]->actions_num; ia++) {
-VLOG_WARN_RL(LOG_MODULE, &rl, "ILFV: action(%u, type:%u)\n", ia, buckets[ib]->actions[ia]->type);
 			if (buckets[ib]->actions[ia]->type == OFPAT_GROUP) {
 				struct ofl_action_group *act = (struct ofl_action_group *) buckets[ib]->actions[ia];
-VLOG_WARN_RL(LOG_MODULE, &rl, "ACT: %u\n", act->group_id);
 				if (!is_in(act->group_id, visited) &&
 					!is_in(act->group_id, to_be_visited)) {
-VLOG_WARN_RL(LOG_MODULE, &rl, "ACT: %u ADD\n", act->group_id);
 					struct group_visit *gv = xmalloc(sizeof(struct group_visit));
 
 					gv->group_id = act->group_id;
@@ -371,8 +367,6 @@ is_loop_free(struct group_table *table, struct ofl_msg_group_mod *mod) {
  *       table would remain loop free after the modification.
  *       It is assumed that table is loop free without the modification.
  */
-VLOG_WARN_RL(LOG_MODULE, &rl, "ILF: %u\n", mod->group_id);
-
 	struct list visited, to_be_visited;
 	bool loop_free;
 	struct group_visit *gv, *gvn;
