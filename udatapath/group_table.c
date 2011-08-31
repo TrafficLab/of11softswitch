@@ -35,6 +35,7 @@
 #include "datapath.h"
 #include "dp_actions.h"
 #include "hmap.h"
+#include "list.h"
 #include "packet.h"
 #include "util.h"
 #include "openflow/openflow.h"
@@ -47,7 +48,13 @@
 static struct vlog_rate_limit rl = VLOG_RATE_LIMIT_INIT(60, 60);
 
 static bool
-is_loop_free(struct group_table *table, struct group_entry *mod_entry);
+is_in(uint32_t id, struct list *list);
+
+static void
+is_loop_free_visit(struct ofl_bucket **buckets, size_t buckets_num, struct list *visited, struct list *to_be_visited);
+
+static bool
+is_loop_free(struct group_table *table, struct ofl_msg_group_mod *mod);
 
 
 struct group_entry *
@@ -106,7 +113,7 @@ group_table_modify(struct group_table *table, struct ofl_msg_group_mod *mod) {
         return ofl_error(OFPET_GROUP_MOD_FAILED, OFPGMFC_OUT_OF_BUCKETS);
     }
 
-    if (!is_loop_free(table, entry)) {
+    if (!is_loop_free(table, mod)) {
         return ofl_error(OFPET_GROUP_MOD_FAILED, OFPGMFC_LOOP);
     }
 
@@ -312,57 +319,99 @@ group_table_destroy(struct group_table *table) {
 }
 
 
+struct group_visit {
+	struct list   node;
+	uint32_t      group_id;
+};
 
 static bool
-is_loop_free(struct group_table *table, struct group_entry *mod_entry) {
+is_in(uint32_t id, struct list *list) {
+	struct group_visit *gv;
+
+	LIST_FOR_EACH(gv, struct group_visit, node, list) {
+		if (gv->group_id == id) {
+			return true;
+		}
+	}
+	return false;
+}
+
+static void
+is_loop_free_visit(struct ofl_bucket **buckets, size_t buckets_num, struct list *visited, struct list *to_be_visited) {
+	size_t ib;
+	for (ib=0; ib<buckets_num; ib++) {
+VLOG_WARN_RL(LOG_MODULE, &rl, "ILFV: bucket(%u)\n", ib);
+		size_t ia;
+
+		for (ia=0; ia<buckets[ib]->actions_num; ia++) {
+VLOG_WARN_RL(LOG_MODULE, &rl, "ILFV: action(%u, type:%u)\n", ia, buckets[ib]->actions[ia]->type);
+			if (buckets[ib]->actions[ia]->type == OFPAT_GROUP) {
+				struct ofl_action_group *act = (struct ofl_action_group *) buckets[ib]->actions[ia];
+VLOG_WARN_RL(LOG_MODULE, &rl, "ACT: %u\n", act->group_id);
+				if (!is_in(act->group_id, visited) &&
+					!is_in(act->group_id, to_be_visited)) {
+VLOG_WARN_RL(LOG_MODULE, &rl, "ACT: %u ADD\n", act->group_id);
+					struct group_visit *gv = xmalloc(sizeof(struct group_visit));
+
+					gv->group_id = act->group_id;
+					list_insert(to_be_visited, &(gv->node));
+
+				}
+
+			}
+		}
+	}
+}
+
+
+static bool
+is_loop_free(struct group_table *table, struct ofl_msg_group_mod *mod) {
 /* Note: called when a modify is called on group. Table is the actual
- *       table, and entry is the modified entry. Returns true if the
- *       table would remain loop free after the modification
+ *       table, and mod is the modified entry. Returns true if the
+ *       table would remain loop free after the modification.
+ *       It is assumed that table is loop free without the modification.
  */
-    struct group_entry *entry, *e;
-    uint32_t *removed;
-    size_t removed_num, i;
-    bool group_found, leaf_found, removed_found;
+VLOG_WARN_RL(LOG_MODULE, &rl, "ILF: %u\n", mod->group_id);
 
-    removed = xmalloc(sizeof(uint32_t) * table->entries_num);
-    removed_num = 0;
+	struct list visited, to_be_visited;
+	bool loop_free;
+	struct group_visit *gv, *gvn;
 
-    for (;;) {
-        group_found = false;
-        leaf_found = false;
+	list_init(&visited);
+	list_init(&to_be_visited);
 
-        HMAP_FOR_EACH(e, struct group_entry, node, &table->entries) {
-            removed_found = false;
-            entry = e->stats->group_id == mod_entry->stats->group_id ? mod_entry : e;
+	is_loop_free_visit(mod->buckets, mod->buckets_num, &visited, &to_be_visited);
 
-            for (i=0; i<removed_num; i++) {
-                if (removed[i] == entry->stats->group_id) {
-                    removed_found = true;
-                    continue;
-                }
+	while(!list_is_empty(&to_be_visited)) {
+		struct group_entry *entry;
 
-            }
+		// if modified entry is to be visited, there is a loop
+		if (is_in(mod->group_id, &to_be_visited)) {
+			break;
+		}
 
-            if (removed_found) {
-                continue;
-            }
+		gv = CONTAINER_OF(list_pop_front(&to_be_visited), struct group_visit, node);
 
-            group_found = true;
-            if (group_entry_is_leaf(entry)) {
-                leaf_found = true;
-                removed[removed_num] = entry->stats->group_id;
-                removed_num++;
-                break;
-            }
-        }
+		entry = group_table_find(table, gv->group_id);
+		if (entry != NULL) {
+			is_loop_free_visit(entry->desc->buckets, entry->desc->buckets_num, &visited, &to_be_visited);
+		} else {
+	        VLOG_WARN_RL(LOG_MODULE, &rl, "is_loop_free cannot find group (%u).", gv->group_id);
+		}
 
-        if (!group_found) {
-            free(removed);
-            return true;
-        }
-        if (!leaf_found) {
-            free(removed);
-            return false;
-        }
-    }
+		list_insert(&visited, &(gv->node));
+	}
+
+	loop_free = list_is_empty(&to_be_visited);
+
+	// free list_nodes
+	LIST_FOR_EACH_SAFE(gv, gvn, struct group_visit, node, &visited) {
+		free(gv);
+	}
+	LIST_FOR_EACH_SAFE(gv, gvn, struct group_visit, node, &to_be_visited) {
+		free(gv);
+	}
+
+
+	return loop_free;
 }

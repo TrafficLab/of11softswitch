@@ -70,10 +70,6 @@ void
 group_entry_execute(struct group_entry *entry,
                           struct packet *packet);
 
-/* Returns true if the group entry is a leaf; i.e. it does not refer to other groups. */
-bool
-group_entry_is_leaf(struct group_entry *entry);
-
 /* Creates a group entry. */
 struct group_entry *
 group_entry_create(struct datapath *dp, struct group_table *table, struct ofl_msg_group_mod *mod);
