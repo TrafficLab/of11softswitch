@@ -116,6 +116,11 @@ group_table_modify(struct group_table *table, struct ofl_msg_group_mod *mod) {
     hmap_insert_fast(&table->entries, &new_entry->node, mod->group_id);
 
     table->buckets_num = table->buckets_num - entry->desc->buckets_num + new_entry->desc->buckets_num;
+
+    /* keep flow references from old group entry */
+    list_replace(&new_entry->flow_refs, &entry->flow_refs);
+    list_init(&entry->flow_refs);
+
     group_entry_destroy(entry);
 
     ofl_msg_free_group_mod(mod, false, table->dp->exp);

@@ -136,8 +136,9 @@ group_entry_destroy(struct group_entry *entry) {
     // remove all referencing flows
     LIST_FOR_EACH_SAFE(ref, next, struct flow_ref_entry, node, &entry->flow_refs) {
         flow_entry_remove(ref->entry, OFPRR_GROUP_DELETE);
-        // no point in decreasing stats counter
-        free(ref);
+        // Note: the flow_ref_entryf will be destroyed after a chain of calls in flow_entry_remove
+        // no point in decreasing stats counter, as the group is destroyed anyway
+
     }
 
     ofl_structs_free_group_desc_stats(entry->desc, entry->dp->exp);
