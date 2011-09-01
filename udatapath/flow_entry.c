@@ -269,6 +269,7 @@ del_group_refs(struct flow_entry *entry) {
     	} else {
             VLOG_WARN_RL(LOG_MODULE, &rl, "Trying to access non-existing group(%u).", gre->group_id);
     	}
+    	list_remove(&gre->node);
         free(gre);
     }
 }
