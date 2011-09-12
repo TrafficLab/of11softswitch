@@ -80,7 +80,7 @@ flow_table_add(struct flow_table *table, struct ofl_msg_flow_mod *mod, bool chec
         }
 
         /* if the entry equals, replace the old one */
-        if (flow_entry_matches(entry, mod, true)) {
+        if (flow_entry_matches(entry, mod, true/*strict*/, false/*check_cookie*/)) {
             new_entry = flow_entry_create(table->dp, table, mod);
             *match_kept = true;
             *insts_kept = true;
@@ -123,7 +123,7 @@ flow_table_modify(struct flow_table *table, struct ofl_msg_flow_mod *mod, bool s
     match_found = false;
 
     LIST_FOR_EACH (entry, struct flow_entry, match_node, &table->match_entries) {
-        if (flow_entry_matches(entry, mod, strict)) {
+        if (flow_entry_matches(entry, mod, strict, true/*check_cookie*/)) {
             flow_entry_replace_instructions(entry, mod->instructions_num, mod->instructions);
             *insts_kept = true;
             match_found = true;
@@ -144,7 +144,7 @@ flow_table_delete(struct flow_table *table, struct ofl_msg_flow_mod *mod, bool s
     struct flow_entry *entry, *next;
 
     LIST_FOR_EACH_SAFE (entry, next, struct flow_entry, match_node, &table->match_entries) {
-        if (flow_entry_matches(entry, mod, strict)) {
+        if (flow_entry_matches(entry, mod, strict, true/*check_cookie*/)) {
             flow_entry_remove(entry, OFPRR_DELETE);
         }
     }

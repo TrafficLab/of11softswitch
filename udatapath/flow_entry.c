@@ -97,7 +97,11 @@ flow_entry_has_out_group(struct flow_entry *entry, uint32_t group) {
 
 
 bool
-flow_entry_matches(struct flow_entry *entry, struct ofl_msg_flow_mod *mod, bool strict) {
+flow_entry_matches(struct flow_entry *entry, struct ofl_msg_flow_mod *mod, bool strict, bool check_cookie) {
+	if (check_cookie && ((entry->stats->cookie & mod->cookie_mask) != (mod->cookie & mod->cookie_mask))) {
+		return false;
+	}
+
     if (strict) {
         return (entry->stats->priority == mod->priority) &&
                match_std_strict((struct ofl_match_standard *)mod->match,
