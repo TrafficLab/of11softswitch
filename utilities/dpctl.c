@@ -1047,12 +1047,6 @@ parse_match(char *str, struct ofl_match_header **match) {
             continue;
         }
         if (strncmp(token, MATCH_DL_VLAN KEY_VAL, strlen(MATCH_DL_VLAN KEY_VAL)) == 0) {
-            if (parse_dl_addr(token + strlen(MATCH_DL_DST_MASK KEY_VAL), m->dl_dst_mask)) {
-                ofp_fatal(0, "Error parsing dl_dst_mask: %s.", token);
-            }
-            continue;
-        }
-        if (strncmp(token, MATCH_DL_VLAN KEY_VAL, strlen(MATCH_DL_VLAN KEY_VAL)) == 0) {
             if (parse_vlan_vid(token + strlen(MATCH_DL_VLAN KEY_VAL), &(m->dl_vlan))) {
                 ofp_fatal(0, "Error parsing vlan label: %s.", token);
             }
