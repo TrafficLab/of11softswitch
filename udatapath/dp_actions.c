@@ -276,7 +276,11 @@ copy_ttl_in(struct packet *pkt, struct ofl_action_header *act UNUSED) {
             // Assumes an IPv4 header follows, if there is place for it
             struct ip_header *ipv4 = (struct ip_header *)((uint8_t *)mpls + MPLS_HEADER_LEN);
 
-            ipv4->ip_ttl = (ntohl(mpls->fields) & MPLS_TTL_MASK) >> MPLS_TTL_SHIFT;
+            uint8_t new_ttl = (ntohl(mpls->fields) & MPLS_TTL_MASK) >> MPLS_TTL_SHIFT;
+            uint16_t old_val = htons((ipv4->ip_proto) + (ipv4->ip_ttl<<8));
+            uint16_t new_val = htons((ipv4->ip_proto) + (new_ttl<<8));
+            ipv4->ip_csum = recalc_csum16(ipv4->ip_csum, old_val, new_val); 
+            ipv4->ip_ttl = new_ttl;
 
         } else {
             VLOG_WARN_RL(LOG_MODULE, &rl, "Trying to execute copy ttl in action on packet with only one mpls.");
@@ -640,9 +644,12 @@ static void
 set_nw_ttl(struct packet *pkt, struct ofl_action_set_nw_ttl *act) {
     packet_handle_std_validate(pkt->handle_std);
     if (pkt->handle_std->proto->ipv4 != NULL) {
-        struct ip_header *ip = pkt->handle_std->proto->ipv4;
+        struct ip_header *ipv4 = pkt->handle_std->proto->ipv4;
 
-        ip->ip_ttl = act->nw_ttl;
+        uint16_t old_val = htons((ipv4->ip_proto) + (ipv4->ip_ttl<<8));
+        uint16_t new_val = htons((ipv4->ip_proto) + (act->nw_ttl<<8));
+        ipv4->ip_csum = recalc_csum16(ipv4->ip_csum, old_val, new_val);
+        ipv4->ip_ttl = act->nw_ttl;
     } else {
         VLOG_WARN_RL(LOG_MODULE, &rl, "Trying to execute SET_NW_TTL action on packet with no ipv4.");
     }
@@ -653,9 +660,16 @@ static void
 dec_nw_ttl(struct packet *pkt, struct ofl_action_header *act UNUSED) {
     packet_handle_std_validate(pkt->handle_std);
     if (pkt->handle_std->proto->ipv4 != NULL) {
-        struct ip_header *ip = pkt->handle_std->proto->ipv4;
 
-        if (ip->ip_ttl > 0) { ip->ip_ttl--; }
+        struct ip_header *ipv4 = pkt->handle_std->proto->ipv4;
+
+        if (ipv4->ip_ttl > 0) {
+            uint8_t new_ttl = ipv4->ip_ttl - 1;
+            uint16_t old_val = htons((ipv4->ip_proto) + (ipv4->ip_ttl<<8));
+            uint16_t new_val = htons((ipv4->ip_proto) + (new_ttl<<8));
+            ipv4->ip_csum = recalc_csum16(ipv4->ip_csum, old_val, new_val);
+            ipv4->ip_ttl = new_ttl;
+        }
     } else {
         VLOG_WARN_RL(LOG_MODULE, &rl, "Trying to execute DEC_NW_TTL action on packet with no ipv4.");
     }
