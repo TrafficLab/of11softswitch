@@ -374,7 +374,7 @@ init_select_group(struct group_entry *entry, struct ofl_msg_group_mod *mod) {
 
         for (i=1; i< entry->desc->buckets_num; i++) {
             data->gcd_weight = gcd(data->gcd_weight, entry->desc->buckets[i]->weight);
-            data->gcd_weight = MAX(data->gcd_weight, entry->desc->buckets[i]->weight);
+            data->max_weight = MAX(data->max_weight, entry->desc->buckets[i]->weight);
         }
 
     }
